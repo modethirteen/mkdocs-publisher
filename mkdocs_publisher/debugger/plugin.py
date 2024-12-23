@@ -55,13 +55,6 @@ class DebuggerPlugin(BasePlugin[DebuggerConfig]):
     def __init__(self):
         self._mkdocs_log_stream_handler: logging.Handler = logging.getLogger("mkdocs").handlers[0]
 
-        self._mkdocs_log_file_handler: loggers.DatedFileHandler = loggers.DatedFileHandler(
-            filename=f"%Y%m%d_%H%M%S{LOG_FILENAME_SUFFIX}"
-        )
-
-        self._mkdocs_log_file: str = str(Path(self._mkdocs_log_file_handler.baseFilename).name)
-        self._mkdocs_log_date: str = self._mkdocs_log_file.replace(LOG_FILENAME_SUFFIX, "")
-
         self.load_config(
             options=cast(
                 dict,
@@ -71,6 +64,14 @@ class DebuggerPlugin(BasePlugin[DebuggerConfig]):
             ),
             config_file_path=mkdocs_utils.get_mkdocs_config().config_file_path,
         )
+
+        # Initialize file-related attributes only if file_log or zip_log is enabled
+        if self.config.file_log.enabled or self.config.zip_log.enabled:
+            self._mkdocs_log_file_handler: loggers.DatedFileHandler = loggers.DatedFileHandler(
+                filename=f"%Y%m%d_%H%M%S{LOG_FILENAME_SUFFIX}"
+            )
+            self._mkdocs_log_file: str = str(Path(self._mkdocs_log_file_handler.baseFilename).name)
+            self._mkdocs_log_date: str = self._mkdocs_log_file.replace(LOG_FILENAME_SUFFIX, "")
 
         if self.config.console_log.enabled:
             self._mkdocs_log_stream_handler.setFormatter(
