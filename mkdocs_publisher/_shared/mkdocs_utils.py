@@ -93,7 +93,7 @@ def get_plugin_config(mkdocs_config: MkDocsConfig, plugin_name: str) -> Union[No
         raise SystemError("Break")
     else:
         if plugin_name in mkdocs_config.plugins:
-            return mkdocs_config.plugins[plugin_name].config
+            return mkdocs_config.plugins[plugin_name].config if hasattr(mkdocs_config.plugins[plugin_name], 'config') else mkdocs_config.plugins[plugin_name]
         else:
             return None
 

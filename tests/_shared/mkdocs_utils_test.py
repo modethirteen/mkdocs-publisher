@@ -26,6 +26,8 @@ import pytest
 
 from mkdocs_publisher._shared.mkdocs_utils import ConfigChoiceEnum
 
+from unittest.mock import mock_open, patch
+from mkdocs_publisher._shared.mkdocs_utils import get_mkdocs_config, get_plugin_config
 
 class ConfigChoiceEnumTest(ConfigChoiceEnum):
     DEFAULT = 0, True, False
@@ -106,3 +108,33 @@ def test_non_bool_as_bool():
 
     with pytest.raises(ValueError):
         NoneBoolChoicesEnum.NON_BOOL.choices()
+
+def test_plugin_config_defined():
+  mkdocs_yml_content = """
+  site_name: My Docs
+  plugins:
+    pub-debugger:
+      file_log:
+        enabled: false
+      zip_log:
+        enabled: false
+    pub-meta: {}
+  """
+  with patch("builtins.open", mock_open(read_data=mkdocs_yml_content)):
+    mkdocs_config = get_mkdocs_config()
+    print(mkdocs_config)
+    plugin_config = get_plugin_config(mkdocs_config, "pub-debugger")
+    assert plugin_config is not None
+    assert isinstance(plugin_config, dict)
+    assert plugin_config == {
+      "file_log": {
+        "enabled": False
+      },
+      "zip_log": {
+        "enabled": False
+      }
+    }
+    plugin_config = get_plugin_config(mkdocs_config, "pub-meta")
+    assert plugin_config is not None
+    assert isinstance(plugin_config, dict)
+    assert plugin_config == {}
